@@ -19,21 +19,26 @@ Mettre en place, en Infrastructure-as-Code et Playbooks, une plateforme SaaS com
 
 ```mermaid
 flowchart LR
-  U[Utilisateur] -->|HTTPS| RP[Traefik/Nginx]
-  RP -->|/auth| KC[Keycloak (realm: saas)]
+flowchart LR
+  U[Utilisateur] -->|HTTPS| RP[Traefik / Nginx]
+  RP -->|/auth OIDC| KC[Keycloak\n(realm: saas)]
+
   RP --> IA[Wiki.js IA]
   RP --> DV[Wiki.js DevOps]
   RP --> CY[Wiki.js Cyber]
+
   IA --- PG[(PostgreSQL)]
   DV --- PG
   CY --- PG
-  IA --- S3[(MinIO/S3)]
+
+  IA --- S3[(MinIO / S3)]
   DV --- S3
   CY --- S3
+
   STR[Stripe Billing] -->|Webhook| N8N[n8n Flows]
   N8N -->|Keycloak Admin API| KC
-  N8N -->|Webhook Infra| OPS[Provisioner/Ansible AWX]
-  OPS -->|Compose/Helm| IA
+  N8N -->|Provision| OPS[Provisioner / Ansible]
+  OPS --> IA
   OPS --> DV
   OPS --> CY
 ```
