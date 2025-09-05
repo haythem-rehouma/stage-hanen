@@ -18,29 +18,28 @@ Mettre en place, en Infrastructure-as-Code et Playbooks, une plateforme SaaS com
 ## 1) Architecture cible (à livrer)
 
 ```mermaid
-flowchart LR
-flowchart LR
-  U[Utilisateur] -->|HTTPS| RP[Traefik / Nginx]
-  RP -->|/auth OIDC| KC[Keycloak\n(realm: saas)]
+sequenceDiagram
+  participant U  as Utilisateur
+  participant RP as Traefik/Nginx
+  participant KC as Keycloak (saas)
+  participant IA as Wiki.js IA
+  participant DV as Wiki.js DevOps
+  participant CY as Wiki.js Cyber
+  participant STR as Stripe
+  participant N8N as n8n
+  participant OPS as Provisioner
 
-  RP --> IA[Wiki.js IA]
-  RP --> DV[Wiki.js DevOps]
-  RP --> CY[Wiki.js Cyber]
+  U->>RP: Requête HTTPS
+  RP->>KC: Redirection /auth (OIDC)
+  KC-->>U: Login SSO
+  U->>RP: Callback OIDC
+  RP->>IA: Proxy (ou DV/CY)
 
-  IA --- PG[(PostgreSQL)]
-  DV --- PG
-  CY --- PG
+  STR-->>N8N: Webhook (subscription)
+  N8N->>KC: Create/Update user + groups
+  N8N->>OPS: Provision tenant (si Enterprise)
+  OPS->>IA: Déployer service/DB (idem DV/CY)
 
-  IA --- S3[(MinIO / S3)]
-  DV --- S3
-  CY --- S3
-
-  STR[Stripe Billing] -->|Webhook| N8N[n8n Flows]
-  N8N -->|Keycloak Admin API| KC
-  N8N -->|Provision| OPS[Provisioner / Ansible]
-  OPS --> IA
-  OPS --> DV
-  OPS --> CY
 ```
 
 **DNS publics (Cloudflare conseillé)**
